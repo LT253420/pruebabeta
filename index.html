@@ -233,16 +233,16 @@
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
   import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signOut } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyBFXj0BAZ9uB_yQuhxpFWDdjuKRy7Tv4A4",
-    authDomain: "herramientasdigitales-bbf23.firebaseapp.com",
-    projectId: "herramientasdigitales-bbf23",
-    storageBucket: "herramientasdigitales-bbf23.appspot.com",
-    messagingSenderId: "816359547560",
-    appId: "1:816359547560:web:378f71ec7d167db448989d"
-  };
+const firebaseConfig = {
+  apiKey: "AIzaSyBW_GYELchHB-VoIc7TR1XPK-tkE4bLutg",
+  authDomain: "iniciopruebabeta.firebaseapp.com",
+  projectId: "iniciopruebabeta",
+  storageBucket: "iniciopruebabeta.firebasestorage.app",
+  messagingSenderId: "17837784293",
+  appId: "1:17837784293:web:94538fc553b24751b5680c"
+};
 
-  const app = initializeApp(firebaseConfig);
+const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const provider = new GoogleAuthProvider();
 
