@@ -229,46 +229,68 @@
 
 
   <!-- Tu configuración de Firebase -->
- <script type="module">
+<script type="module">
+  // Import por CDN (no uses "firebase/app" a secas en el navegador)
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-  import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signOut } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+  import { 
+    getAuth, 
+    onAuthStateChanged, 
+    signInWithPopup, 
+    GoogleAuthProvider, 
+    signOut 
+  } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyBW_GYELchHB-VoIc7TR1XPK-tkE4bLutg",
-  authDomain: "iniciopruebabeta.firebaseapp.com",
-  projectId: "iniciopruebabeta",
-  storageBucket: "iniciopruebabeta.firebasestorage.app",
-  messagingSenderId: "17837784293",
-  appId: "1:17837784293:web:94538fc553b24751b5680c"
-};
+  // Tu configuración (la que mandaste)
+  const firebaseConfig = {
+    apiKey: "AIzaSyBW_GYELchHB-VoIc7TR1XPK-tkE4bLutg",
+    authDomain: "iniciopruebabeta.firebaseapp.com",
+    projectId: "iniciopruebabeta",
+    storageBucket: "iniciopruebabeta.firebasestorage.app",
+    messagingSenderId: "17837784293",
+    appId: "1:17837784293:web:94538fc553b24751b5680c"
+  };
 
-const app = initializeApp(firebaseConfig);
+  // Inicializar
+  const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const provider = new GoogleAuthProvider();
 
-  window.login = () => {
-    signInWithPopup(auth, provider)
-      .then((result) => {
-        const user = result.user;
-        document.getElementById("emailText").innerText = user.email;
-        document.getElementById("logoutBtn").style.display = "inline-block";
-        document.getElementById("loginContainer").style.display = "none";
-        document.getElementById("appContent").style.display = "flex";
-      })
-      .catch((error) => {
-        console.error("Error en login:", error);
-        alert("Error al iniciar sesión: " + error.message);
-      });
-  };
+  // Botones y span (ajustá los IDs si usás otros)
+  const loginBtn  = document.getElementById("loginBtn");
+  const logoutBtn = document.getElementById("logoutBtn");
+  const emailText = document.getElementById("emailText");
 
-  window.logout = () => {
-    signOut(auth).then(() => {
-      document.getElementById("loginContainer").style.display = "block";
-      document.getElementById("appContent").style.display = "none";
-      document.getElementById("logoutBtn").style.display = "none";
-      document.getElementById("emailText").innerText = "";
+  // Login
+  if (loginBtn) {
+    loginBtn.addEventListener("click", () => {
+      signInWithPopup(auth, provider).catch(err => {
+        alert("Error al iniciar sesión: " + err.message);
+        console.error(err);
+      });
     });
-  };
+  }
+
+  // Logout
+  if (logoutBtn) {
+    logoutBtn.addEventListener("click", () => signOut(auth));
+  }
+
+  // Escucha de sesión
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      if (emailText) emailText.textContent = user.email ?? "Usuario";
+      if (logoutBtn) logoutBtn.style.display = "inline-block";
+      if (loginBtn)  loginBtn.style.display  = "none";
+      // acá podés mostrar tu appContent, etc.
+      // document.getElementById("appContent").style.display = "flex";
+    } else {
+      if (logoutBtn) logoutBtn.style.display = "none";
+      if (loginBtn)  loginBtn.style.display  = "inline-block";
+      if (emailText) emailText.textContent   = "";
+      // document.getElementById("appContent").style.display = "none";
+    }
+  });
+  //acá termina el Config de firebase
 
   // Persistencia automática del usuario autenticado
    onAuthStateChanged(auth, (user) => {
@@ -280,6 +302,7 @@ const app = initializeApp(firebaseConfig);
     }
   });
  </script>
+    //acá termina la persistencia automatica del usuario autenticado
       
 <script>
 
