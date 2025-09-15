@@ -21,15 +21,31 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 
+// ==================== 2º factor: configuración ====================
+// Reemplazá este hash por el SHA-256 de TU contraseña.
+// Cómo obtenerlo (en la consola del navegador):
+//   await crypto.subtle.digest('SHA-256', new TextEncoder().encode('tu-contraseña'))
+//     .then(b=>Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join(''))
+const PASSWORD_HASH = "PON_AQUI_EL_SHA256_DE_TU_PASSWORD";
+
+async function sha256Hex(text) {
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, "0")).join("");
+}
+function show(elId, display = "flex") { const el = document.getElementById(elId); if (el) el.style.display = display; }
+function hide(elId) { const el = document.getElementById(elId); if (el) el.style.display = "none"; }
+function isSecondFactorOk() { return sessionStorage.getItem("secondFactorOk") === "1"; }
+function setSecondFactorOk(v) { sessionStorage.setItem("secondFactorOk", v ? "1" : "0"); }
+
 // ==================== Login / Logout ====================
 window.login = () => {
   signInWithPopup(auth, provider)
-    .then((result) => {
-      const user = result.user;
-      document.getElementById("emailText").innerText = user.email ?? "";
-      document.getElementById("logoutBtn").style.display = "inline-block";
-      document.getElementById("loginContainer").style.display = "none";
-      document.getElementById("appContent").style.display = "flex";
+    .then(() => {
+      // No mostramos app todavía: pedimos contraseña.
+      setSecondFactorOk(false);
+      hide("loginContainer");
+      show("passwordGate", "flex");
+      hide("appContent");
     })
     .catch((error) => {
       console.error("Error en login:", error);
@@ -38,21 +54,68 @@ window.login = () => {
 };
 
 window.logout = () => {
-  signOut(auth).then(() => {
-    document.getElementById("loginContainer").style.display = "block";
-    document.getElementById("appContent").style.display = "none";
-    document.getElementById("logoutBtn").style.display = "none";
-    document.getElementById("emailText").innerText = "";
+  setSecondFactorOk(false);
+  signOut(auth).finally(() => {
+    show("loginContainer", "block");
+    hide("appContent");
+    hide("passwordGate");
+    hide("logoutBtn");
+    const emailText = document.getElementById("emailText");
+    if (emailText) emailText.innerText = "";
   });
 };
 
-// Mantener sesión activa
+// Verificación de 2º factor
+window.verifyPassword = async () => {
+  const input = document.getElementById("pwdInput");
+  const error = document.getElementById("pwdError");
+  if (!input) return;
+
+  const typed = input.value.trim();
+  const typedHash = await sha256Hex(typed);
+
+  if (typedHash === PASSWORD_HASH) {
+    // OK → mostrar app
+    setSecondFactorOk(true);
+    hide("passwordGate");
+    show("appContent", "flex");
+    show("logoutBtn", "inline-block");
+  } else {
+    // Incorrecta → cerrar sesión y sacar de la página
+    if (error) { error.style.display = "block"; }
+    setSecondFactorOk(false);
+    await signOut(auth);
+    // Redirijo a una página “segura” (window.close suele fallar si no abre por script)
+    location.replace("https://www.google.com/");
+  }
+};
+
+// Mantener sesión activa + gate
 onAuthStateChanged(auth, (user) => {
   if (user) {
-    document.getElementById("emailText").innerText = user.email ?? "";
-    document.getElementById("logoutBtn").style.display = "inline-block";
-    document.getElementById("loginContainer").style.display = "none";
-    document.getElementById("appContent").style.display = "flex";
+    const emailText = document.getElementById("emailText");
+    if (emailText) emailText.innerText = user.email ?? "";
+
+    if (isSecondFactorOk()) {
+      // Ya pasó el 2FA en esta sesión
+      hide("loginContainer");
+      hide("passwordGate");
+      show("appContent", "flex");
+      show("logoutBtn", "inline-block");
+    } else {
+      // Falta contraseña
+      hide("loginContainer");
+      show("passwordGate", "flex");
+      hide("appContent");
+      show("logoutBtn", "inline-block"); // Ya está logueado con Google
+    }
+  } else {
+    // No autenticado
+    setSecondFactorOk(false);
+    show("loginContainer", "block");
+    hide("passwordGate");
+    hide("appContent");
+    hide("logoutBtn");
   }
 });
 
@@ -61,11 +124,10 @@ window.showResponse = (falla) => {
   ocultarTodo();
   const respuestas = document.getElementById("respuestas");
   respuestas.style.display = "flex";
-  void respuestas.offsetWidth; // forzar reflow
+  void respuestas.offsetWidth;
   respuestas.classList.add("hud-appear");
   respuestas.innerHTML = `<button onclick="volverA('fallas')">← Volver</button><h2>${falla}</h2>`;
 
-  // Esta variable no está en el HTML que pasaste. Evito errores si no existe.
   if (typeof window.respuestasPorFalla !== "undefined" && window.respuestasPorFalla[falla]) {
     window.respuestasPorFalla[falla].forEach(([titulo, descripcion]) => {
       const btn = document.createElement("button");
