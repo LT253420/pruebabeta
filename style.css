@@ -598,25 +598,26 @@ body.light-mode .footer {
 /* ================== INPUTS HOLOGRÁFICOS ================== */
 input.response-box {
   background: transparent;
-  border: 2px solid color: var(--color-principal); /* verde neón */
-  color: var(--color-principal); /* texto verde */
+  border: 2px solid var(--color-principal); /* borde con tu variable */
+  color: var(--color-principal); /* texto */
   padding: 10px 12px;
   border-radius: 8px;
   outline: none;
   font-size: 1rem;
   text-align: center;
   transition: all 0.3s ease;
-  box-shadow: 0 0 10px rgba(0, 255, 128, 0.3);
+  box-shadow: 0 0 10px var(--color-luz); /* brillo suave */
 }
 
 input.response-box::placeholder {
-  color: var(--color-principal); /* placeholder en color ajustable */
+  color: var(--color-luz); /* placeholder más transparente */
   text-align: center;
 }
 
 input.response-box:focus {
   border-color: var(--color-principal);
-  box-shadow: 0 0 20px var(--color-luz);
-  background: rgba(0, 255, 128, 0.05);
+  box-shadow: 0 0 20px var(--color-principal); /* glow más fuerte al focus */
+  background: rgba(0, 255, 128, 0.05); /* podés cambiar este color a usar var(--color-luz) si querés */
 }
+
 
