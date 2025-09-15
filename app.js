@@ -1,11 +1,11 @@
-// ==================== Firebase Config ====================
+// ==================== Firebase Config (ESM) ====================
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-import { 
-  getAuth, 
-  onAuthStateChanged, 
-  signInWithPopup, 
-  GoogleAuthProvider, 
-  signOut 
+import {
+  getAuth,
+  onAuthStateChanged,
+  signInWithPopup,
+  GoogleAuthProvider,
+  signOut
 } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
 
 const firebaseConfig = {
@@ -26,7 +26,7 @@ window.login = () => {
   signInWithPopup(auth, provider)
     .then((result) => {
       const user = result.user;
-      document.getElementById("emailText").innerText = user.email;
+      document.getElementById("emailText").innerText = user.email ?? "";
       document.getElementById("logoutBtn").style.display = "inline-block";
       document.getElementById("loginContainer").style.display = "none";
       document.getElementById("appContent").style.display = "flex";
@@ -49,24 +49,25 @@ window.logout = () => {
 // Mantener sesión activa
 onAuthStateChanged(auth, (user) => {
   if (user) {
-    document.getElementById("emailText").innerText = user.email;
+    document.getElementById("emailText").innerText = user.email ?? "";
     document.getElementById("logoutBtn").style.display = "inline-block";
     document.getElementById("loginContainer").style.display = "none";
     document.getElementById("appContent").style.display = "flex";
   }
 });
 
-// ==================== Funciones de UI ====================
-function showResponse(falla) {
+// ==================== Funciones de UI (expuestas al window) ====================
+window.showResponse = (falla) => {
   ocultarTodo();
   const respuestas = document.getElementById("respuestas");
   respuestas.style.display = "flex";
-  void respuestas.offsetWidth;
+  void respuestas.offsetWidth; // forzar reflow
   respuestas.classList.add("hud-appear");
   respuestas.innerHTML = `<button onclick="volverA('fallas')">← Volver</button><h2>${falla}</h2>`;
 
-  if (respuestasPorFalla[falla]) {
-    respuestasPorFalla[falla].forEach(([titulo, descripcion]) => {
+  // Esta variable no está en el HTML que pasaste. Evito errores si no existe.
+  if (typeof window.respuestasPorFalla !== "undefined" && window.respuestasPorFalla[falla]) {
+    window.respuestasPorFalla[falla].forEach(([titulo, descripcion]) => {
       const btn = document.createElement("button");
       btn.textContent = titulo;
       btn.onclick = () => {
@@ -79,18 +80,16 @@ function showResponse(falla) {
       respuestas.appendChild(btn);
     });
   }
-}
+};
 
-function mostrarComoUsar() {
+window.mostrarComoUsar = () => {
   ocultarTodo();
   const uso = document.getElementById("usoMenu");
   uso.style.display = "flex";
-  requestAnimationFrame(() => {
-    uso.classList.add("hud-appear");
-  });
-}
+  requestAnimationFrame(() => uso.classList.add("hud-appear"));
+};
 
-function mostrarFallas() {
+window.mostrarFallas = () => {
   ocultarTodo();
   const fallas = document.getElementById("fallasMenu");
   fallas.style.display = "flex";
@@ -98,47 +97,39 @@ function mostrarFallas() {
   document.getElementById("moradoMenu").style.display = "flex";
   document.getElementById("blancoMenu").style.display = "flex";
   document.getElementById("celesteMenu").style.display = "flex";
-  requestAnimationFrame(() => {
-    fallas.classList.add("hud-appear");
-  });
-}
+  requestAnimationFrame(() => fallas.classList.add("hud-appear"));
+};
 
-function mostrarCodigos() {
+window.mostrarCodigos = () => {
   ocultarTodo();
   const codigos = document.getElementById("codigosMenu");
   codigos.style.display = "flex";
-  requestAnimationFrame(() => {
-    codigos.classList.add("hud-appear");
-  });
-}
+  requestAnimationFrame(() => codigos.classList.add("hud-appear"));
+};
 
-function mostrarContacto() {
+window.mostrarContacto = () => {
   ocultarTodo();
   const contacto = document.getElementById("contactoMenu");
   contacto.style.display = "flex";
-  requestAnimationFrame(() => {
-    contacto.classList.add("hud-appear");
-  });
-}
+  requestAnimationFrame(() => contacto.classList.add("hud-appear"));
+};
 
-function volverA(seccion) {
+window.volverA = (seccion) => {
   ocultarTodo();
   const destino = seccion === "main" ? "mainMenu" : "fallasMenu";
   const menu = document.getElementById(destino);
   menu.style.display = "flex";
-  requestAnimationFrame(() => {
-    menu.classList.add("hud-appear");
-  });
-}
+  requestAnimationFrame(() => menu.classList.add("hud-appear"));
+};
 
-function toggleTheme() {
+window.toggleTheme = () => {
   document.body.classList.toggle("light-mode");
-}
+};
 
-function goToHome() {
-  volverA("main");
+window.goToHome = () => {
+  window.volverA("main");
   document.getElementById("mainMenu").style.display = "flex";
-}
+};
 
 function ocultarTodo() {
   [
@@ -147,9 +138,10 @@ function ocultarTodo() {
     "respuestas", "contactoMenu"
   ].forEach(id => {
     const el = document.getElementById(id);
-    el.style.display = "none";
+    if (el) el.style.display = "none";
   });
-  document.getElementById("respuestas").innerHTML = "";
+  const resp = document.getElementById("respuestas");
+  if (resp) resp.innerHTML = "";
 }
 
 // ==================== Preloader ====================
@@ -164,21 +156,20 @@ window.onload = () => setTimeout(updateProgress, 200);
 function updateProgress() {
   if (index < smoothProgress.length) {
     const value = smoothProgress[index];
-    fill.style.width = value + "%";
-    percentText.textContent = value + "%";
+    if (fill) fill.style.width = value + "%";
+    if (percentText) percentText.textContent = value + "%";
     index++;
     setTimeout(updateProgress, 100);
   } else {
-    percentText.classList.add("flash");
-    fill.classList.add("flash");
+    percentText?.classList.add("flash");
+    fill?.classList.add("flash");
     setTimeout(() => {
-      preloader.style.display = "none";
+      if (preloader) preloader.style.display = "none";
       const appContent = document.getElementById("appContent");
-      appContent.classList.add("hud-appear");
+      appContent?.classList.add("hud-appear");
     }, 500);
   }
 }
 
 // ==================== Restricciones ====================
-// Bloquear menú contextual
 document.addEventListener("contextmenu", event => event.preventDefault());
