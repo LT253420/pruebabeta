@@ -266,7 +266,7 @@
   const auth = getAuth(app);
   const provider = new GoogleAuthProvider();
 
-  // ===== Referencias DOM según TU HTML =====
+  // Referencias
   const preloader      = document.getElementById("preloader");
   const appContent     = document.getElementById("appContent");
   const loginContainer = document.getElementById("loginContainer");
@@ -280,11 +280,85 @@
   const pwLogoutBtn  = document.getElementById("pwLogoutBtn");
   const pwError      = document.getElementById("pwError");
 
-  // ===== Contraseña (cámbiala cuando quieras) =====
+  // Cambia esta clave
   const ACCESS_PASSWORD = "TU-CLAVE-SECRETA-AQUI";
-
-  // Guarda el pase por usuario en la pestaña
   const gateKeyFor = (uid) => `gate_ok:${uid}`;
+
+  // ---- Login/Logout expuestos al botón ----
+  window.login = async () => {
+    try { await signInWithPopup(auth, provider); }
+    catch (e) { alert(e.message); }
+  };
+  window.logout = async () => {
+    try { await signOut(auth); }
+    catch (e) { alert(e.message); }
+  };
+  // Fallback por si el inline onclick falla por algo
+  document.getElementById('loginBtn')?.addEventListener('click', () => window.login && window.login());
+
+  // ---- Gate helpers ----
+  function showPasswordGate() {
+    pwInput.value = ""; pwError.textContent = "";
+    passwordGate.style.display = "flex";
+    pwInput.focus();
+  }
+  function hidePasswordGate() { passwordGate.style.display = "none"; }
+
+  function runPreloaderThenShowApp() {
+    if (!preloader) { appContent && (appContent.style.display = "flex"); return; }
+    preloader.style.display = "flex";
+    const fill = document.getElementById("progressFill");
+    const pct  = document.getElementById("percentage");
+    let p = 0;
+    const t = setInterval(() => {
+      p = Math.min(100, p + 7);
+      if (fill) fill.style.width = p + "%";
+      if (pct)  pct.textContent = p + "%";
+      if (p >= 100) {
+        clearInterval(t);
+        preloader.style.display = "none";
+        appContent && (appContent.style.display = "flex");
+      }
+    }, 50);
+  }
+
+  function handlePasswordSubmit(user) {
+    const value = (pwInput.value || "").trim();
+    if (!value) return pwError.textContent = "Ingresá la contraseña.";
+    if (value !== ACCESS_PASSWORD) return pwError.textContent = "Contraseña incorrecta.";
+    sessionStorage.setItem(gateKeyFor(user.uid), "1");
+    hidePasswordGate();
+    runPreloaderThenShowApp();
+  }
+
+  pwSubmitBtn?.addEventListener("click", () => auth.currentUser && handlePasswordSubmit(auth.currentUser));
+  pwInput?.addEventListener("keydown", (e) => { if (e.key === "Enter" && auth.currentUser) handlePasswordSubmit(auth.currentUser); });
+  pwLogoutBtn?.addEventListener("click", () => signOut(auth));
+
+  // ---- Estado de sesión ----
+  onAuthStateChanged(auth, (user) => {
+    if (!user) {
+      emailText && (emailText.textContent = "");
+      logoutBtn && (logoutBtn.style.display = "none");
+      loginContainer && (loginContainer.style.display = "flex");
+      preloader && (preloader.style.display = "none");
+      appContent && (appContent.style.display = "none");
+      hidePasswordGate();
+      return;
+    }
+    emailText && (emailText.textContent = user.email ?? "Usuario");
+    logoutBtn && (logoutBtn.style.display = "inline-block");
+    loginContainer && (loginContainer.style.display = "none");
+
+    if (sessionStorage.getItem(gateKeyFor(user.uid)) === "1") {
+      hidePasswordGate();
+      runPreloaderThenShowApp();
+    } else {
+      preloader && (preloader.style.display = "none");
+      appContent && (appContent.style.display = "none");
+      showPasswordGate();
+    }
+  });
 
   // ===== Funciones de TU HTML =====
   window.login = async () => {
