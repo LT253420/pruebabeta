@@ -3,12 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Prueba Beta</title>
+  <title>Prueba beta</title>
   <link rel="stylesheet" href="style.css">
-     <!-- Ícono claro para modo claro -->
-  <link rel="icon" href="favicon-dark.ico" media="(prefers-color-scheme: light)">
-  <!-- Ícono oscuro para modo oscuro -->
-  <link rel="icon" href="favicon-light.ico" media="(prefers-color-scheme: dark)">
 </head>
 
   <body>
@@ -223,127 +219,28 @@
 
     <!-- Scripts de Firebase -->
   <!-- Firebase App (core SDK) -->
-<!-- Firebase (CDN compat) + Auth -->
-<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js"></script>
+<!-- Firebase Auth -->
+<script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js"></script>
 
-<script>
-  // --- Config de tu proyecto (tal cual me pasaste) ---
+
+  <!-- Tu configuración de Firebase -->
+ <script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signOut } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+
   const firebaseConfig = {
-    apiKey: "AIzaSyBW_GYELchHB-VoIc7TR1XPK-tkE4bLutg",
-    authDomain: "iniciopruebabeta.firebaseapp.com",
-    projectId: "iniciopruebabeta",
-    storageBucket: "iniciopruebabeta.firebasestorage.app",
-    messagingSenderId: "17837784293",
-    appId: "1:17837784293:web:94538fc553b24751b5680c"
+    apiKey: "AIzaSyBFXj0BAZ9uB_yQuhxpFWDdjuKRy7Tv4A4",
+    authDomain: "herramientasdigitales-bbf23.firebaseapp.com",
+    projectId: "herramientasdigitales-bbf23",
+    storageBucket: "herramientasdigitales-bbf23.appspot.com",
+    messagingSenderId: "816359547560",
+    appId: "1:816359547560:web:378f71ec7d167db448989d"
   };
 
-  // --- Inicializar Firebase (compat) ---
-  console.log("[auth] inicializando firebase…");
-  firebase.initializeApp(firebaseConfig);
-  const auth = firebase.auth();
-  const provider = new firebase.auth.GoogleAuthProvider();
-  provider.setCustomParameters({ prompt: 'select_account' });
-  auth.languageCode = 'es';
-
-  // --- DOM (existentes en tu HTML) ---
-  const loginContainer = document.getElementById('loginContainer');
-  const appContent     = document.getElementById('appContent');
-  const loginBtn       = document.getElementById('loginBtn');
-  const logoutBtn      = document.getElementById('logoutBtn');
-  const emailText      = document.getElementById('emailText');
-
-  // --- Caja de error visible ---
-  let errorBox = document.getElementById('authErrorBox');
-  if (!errorBox) {
-    errorBox = document.createElement('div');
-    errorBox.id = 'authErrorBox';
-    errorBox.style.cssText = 'margin:10px auto;max-width:900px;color:#b00020;background:#ffe6e9;border:1px solid #b00020;padding:10px;display:none;border-radius:6px;';
-    loginContainer?.appendChild(errorBox);
-  }
-  function showError(msg) {
-    console.error("[auth] ", msg);
-    errorBox.textContent = String(msg);
-    errorBox.style.display = 'block';
-  }
-  function hideError() {
-    errorBox.style.display = 'none';
-  }
-
-  // --- Asegurar que el preloader NO bloquee nada ---
-  (function killPreloader(){
-    var pre = document.getElementById('preloader');
-    if (pre) {
-      pre.style.display = 'none';
-      pre.style.visibility = 'hidden';
-      pre.style.pointerEvents = 'none';
-    }
-  })();
-
-  // --- UI inicial ---
-  ocultarApp();
-
-  // --- Auth state ---
-  auth.onAuthStateChanged((user) => {
-    console.log("[auth] state changed:", user ? user.email : "sin usuario");
-    hideError();
-    if (user) {
-      emailText.textContent = user.email || '';
-      mostrarApp();
-    } else {
-      emailText.textContent = '';
-      ocultarApp();
-    }
-  });
-
-  // --- Acciones ---
-  async function login() {
-    hideError();
-    console.log("[auth] login() click");
-    try {
-      if (loginBtn) loginBtn.disabled = true;
-      await auth.signInWithPopup(provider);
-      // si el popup se bloquea, el catch lo maneja
-    } catch (err) {
-      console.warn("[auth] popup falló, probando redirect…", err?.code || err);
-      try {
-        await auth.signInWithRedirect(provider);
-      } catch (e2) {
-        showError('Error al iniciar sesión: ' + (e2?.message || e2));
-      }
-    } finally {
-      if (loginBtn) loginBtn.disabled = false;
-    }
-  }
-
-  async function logout() {
-    hideError();
-    try {
-      await auth.signOut();
-    } catch (err) {
-      showError('Error al cerrar sesión: ' + (err?.message || err));
-    }
-  }
-
-  // --- Helpers de UI ---
-  function mostrarApp() {
-    if (loginContainer) loginContainer.style.display = 'none';
-    if (appContent) {
-      appContent.style.display = 'flex';
-      appContent.style.width   = '100%';
-    }
-    if (logoutBtn) logoutBtn.style.display = 'inline-block';
-  }
-  function ocultarApp() {
-    if (loginContainer) loginContainer.style.display = 'block';
-    if (appContent) appContent.style.display = 'none';
-    if (logoutBtn) logoutBtn.style.display = 'none';
-  }
-
-  // Exponer al scope global (por tus onclick)
-  window.login = login;
-  window.logout = logout;
-
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const provider = new GoogleAuthProvider();
 
   window.login = () => {
     signInWithPopup(auth, provider)
@@ -381,6 +278,35 @@
  </script>
       
 <script>
+
+    const respuestasPorFalla = {
+      "No enciende": [
+        ["Revisar batería", "Medir batería para saber si funciona."],
+        ["Botón de encendido", "Verificar si el botón funciona correctamente."],
+        ["Placa base", "Posible falla de alimentación o cortocircuito."]
+      ],
+      "No tiene sonido": [
+        ["Altavoz", "Probar el parlante con otro equipo."],
+        ["Conectores", "Verificar si están sulfatados o desconectados."],
+        ["Placa base", "Fallo en circuito de audio."]
+      ],
+      "No puedo hacer llamadas": [
+        ["Estado del IMEI", "Verificar si el equipo fue dado de baja."],
+        ["Chip", "Probar con otro chip o limpiar la bandeja."],
+        ["Señal", "Revisar si toma señal correctamente."]
+      ],
+      "El teléfono se calienta": [
+        ["Batería", "Puede estar defectuosa o vieja."],
+        ["Apps en segundo plano", "Cerrar procesos que usen muchos recursos."],
+        ["Mantenimiento", "Limpiar placa, cambiar pasta térmica."]
+      ],
+
+      "Mi celular se apaga solo": [
+        ["Boton de encendido", "Puede estar en corto o dañado"],
+        ["Batería", "Conector de batería dañado o batería en mal estado"],
+        ["Placa Madre", "Cortocircuito o placa dañada"]
+      ]
+    };
 
 function showResponse(falla) {
   ocultarTodo();
@@ -505,145 +431,5 @@ function ocultarTodo() {
       }
     }
   </script>
-<!-- Firebase (CDN compat) + Auth -->
-<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
-
-<script>
-  // --- Config de tu proyecto ---
-  const firebaseConfig = {
-    apiKey: "AIzaSyBW_GYELchHB-VoIc7TR1XPK-tkE4bLutg",
-    authDomain: "iniciopruebabeta.firebaseapp.com",
-    projectId: "iniciopruebabeta",
-    storageBucket: "iniciopruebabeta.firebasestorage.app",
-    messagingSenderId: "17837784293",
-    appId: "1:17837784293:web:94538fc553b24751b5680c"
-  };
-
-  // --- Inicializar Firebase (compat) ---
-  firebase.initializeApp(firebaseConfig);
-  const auth = firebase.auth();
-  const provider = new firebase.auth.GoogleAuthProvider();
-  provider.setCustomParameters({ prompt: 'select_account' });
-  auth.languageCode = 'es';
-
-  // --- DOM que ya existe en tu HTML ---
-  const loginContainer = document.getElementById('loginContainer');
-  const appContent     = document.getElementById('appContent');
-  const loginBtn       = document.getElementById('loginBtn');
-  const logoutBtn      = document.getElementById('logoutBtn');
-  const emailText      = document.getElementById('emailText');
-
-  // --- Área de errores visible (la creo si no existe) ---
-  let errorBox = document.getElementById('authErrorBox');
-  if (!errorBox) {
-    errorBox = document.createElement('div');
-    errorBox.id = 'authErrorBox';
-    errorBox.style.cssText = 'margin:10px auto;max-width:900px;color:#b00020;background:#ffe6e9;border:1px solid #b00020;padding:10px;display:none;border-radius:6px;';
-    loginContainer?.appendChild(errorBox);
-  }
-  function showError(msg) {
-    if (!errorBox) return;
-    errorBox.textContent = msg;
-    errorBox.style.display = 'block';
-  }
-  function hideError() {
-    if (!errorBox) return;
-    errorBox.style.display = 'none';
-  }
-
-  // --- Ocultar app de entrada ---
-  ocultarApp();
-
-  // --- Detectar si se abrió como file:// (esto rompe Google Auth) ---
-  if (location.protocol === 'file:') {
-    showError('⚠️ Google Sign-In no funciona con file://. Abrí este archivo con un servidor (http://localhost). Por ejemplo: "npx serve", "Live Server" de VSCode o "python -m http.server". También asegurate de tener "localhost" en Authorized domains de Firebase.');
-  }
-
-  // --- Estado de sesión ---
-  auth.onAuthStateChanged((user) => {
-    hideError();
-    if (user) {
-      emailText.textContent = user.email || '';
-      mostrarApp();
-    } else {
-      emailText.textContent = '';
-      ocultarApp();
-    }
-  });
-
-  // --- Funciones que usás desde el HTML ---
-  async function login() {
-    hideError();
-    try {
-      if (location.protocol === 'file:') {
-        showError('⚠️ No se puede iniciar sesión desde file://. Usá http://localhost y agregá "localhost" en Authorized domains de Firebase.');
-        return;
-      }
-      loginBtn.disabled = true;
-      // Intento con popup
-      await auth.signInWithPopup(provider);
-    } catch (err) {
-      // Si el popup está bloqueado, probamos redirect
-      if (err && (err.code === 'auth/popup-blocked' || err.code === 'auth/popup-closed-by-user')) {
-        try {
-          await auth.signInWithRedirect(provider);
-          return;
-        } catch (e2) {
-          console.error('Redirect también falló:', e2);
-          showError('Error al iniciar sesión (redirect): ' + (e2?.message || e2));
-        }
-      } else {
-        console.error('Error al iniciar sesión:', err);
-        showError('Error al iniciar sesión: ' + (err?.message || err));
-      }
-    } finally {
-      loginBtn.disabled = false;
-    }
-  }
-
-  async function logout() {
-    hideError();
-    try {
-      await auth.signOut();
-    } catch (err) {
-      console.error('Error al cerrar sesión:', err);
-      showError('Error al cerrar sesión: ' + (err?.message || err));
-    }
-  }
-
-  // --- Helpers UI ---
-  function mostrarApp() {
-    if (loginContainer) loginContainer.style.display = 'none';
-    if (appContent) {
-      appContent.style.display = 'flex';   // tu contenedor usa flex
-      appContent.style.width   = '100%';
-    }
-    if (logoutBtn) logoutBtn.style.display = 'inline-block';
-  }
-
-  function ocultarApp() {
-    if (loginContainer) loginContainer.style.display = 'block';
-    if (appContent) appContent.style.display = 'none';
-    if (logoutBtn) logoutBtn.style.display = 'none';
-  }
-
-  // Exponer por los onclick del HTML
-  window.login = login;
-  window.logout = logout;
-</script>
-
-    <script>
-  // Mata el preloader por las dudas (si el CSS no llegó a aplicar a tiempo)
-  (function killPreloader(){
-    var pre = document.getElementById('preloader');
-    if (pre) {
-      pre.style.display = 'none';
-      pre.style.visibility = 'hidden';
-      pre.style.pointerEvents = 'none';
-    }
-  })();
-</script>
-
 </body>
 </html>
