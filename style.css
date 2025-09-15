@@ -593,3 +593,29 @@ body.light-mode .footer {
   visibility: hidden !important;
   pointer-events: none !important;
 }
+
+/* ================== INPUTS HOLOGRÁFICOS ================== */
+input.response-box {
+  background: transparent;
+  border: 2px solid rgba(0, 255, 128, 0.7); /* verde neón */
+  color: #0f0; /* texto verde */
+  padding: 10px 12px;
+  border-radius: 8px;
+  outline: none;
+  font-size: 1rem;
+  text-align: center;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 10px rgba(0, 255, 128, 0.3);
+}
+
+input.response-box::placeholder {
+  color: rgba(0, 255, 128, 0.5); /* placeholder en verde translúcido */
+  text-align: center;
+}
+
+input.response-box:focus {
+  border-color: #0f0;
+  box-shadow: 0 0 20px rgba(0, 255, 128, 0.8);
+  background: rgba(0, 255, 128, 0.05);
+}
+
