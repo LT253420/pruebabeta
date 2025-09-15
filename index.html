@@ -31,16 +31,21 @@
   </div>
 
 <!-- Gate de contraseña post-login -->
-<div id="passwordGate" style="display:none; align-items:center; justify-content:center; flex-direction:column; gap:12px; padding:24px; max-width:420px; margin:32px auto; border:1px solid #ccc; border-radius:12px;">
-  <h2>Verificación adicional</h2>
-  <p style="text-align:center; margin:0;">Ingresá la contraseña para continuar.</p>
+<div id="passwordGate" class="button-container" style="display:none; flex-direction:column; align-items:center; gap:15px; padding:20px;">
+  <h2>🔐 Verificación adicional</h2>
+  <div class="response-box static justificado" style="text-align:center;">
+    Ingresá la contraseña para continuar.
+  </div>
   <input id="pwdInput" type="password" placeholder="Contraseña" autocomplete="current-password"
-         style="width:100%; padding:10px; border-radius:8px; border:1px solid #bbb;">
-  <div style="display:flex; gap:10px; margin-top:8px;">
+         class="response-box static"
+         style="max-width:280px; text-align:center; padding:10px;">
+  <div style="display:flex; gap:10px; margin-top:10px;">
     <button onclick="verifyPassword()">Entrar</button>
     <button onclick="logout()">Cancelar</button>
   </div>
-  <div id="pwdError" style="display:none; color:#c00; font-size:0.9rem;">Contraseña incorrecta.</div>
+  <div id="pwdError" class="response-box static" style="display:none; color:#ff4444; background:rgba(255,0,0,0.1); border:1px solid #ff4444;">
+    ❌ Contraseña incorrecta.
+  </div>
 </div>
 
   
