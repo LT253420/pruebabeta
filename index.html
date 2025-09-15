@@ -249,18 +249,10 @@
 
   <!-- Tu configuración de Firebase -->
 <script type="module">
-  // Import por CDN (no uses "firebase/app" a secas en el navegador)
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-  import { 
-    getAuth, 
-    onAuthStateChanged, 
-    signInWithPopup, 
-    GoogleAuthProvider, 
-    signOut 
-  } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
- 
+  // ===== Firebase (CDN) =====
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signOut } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
 
-  // Tu configuración (la que mandaste)
   const firebaseConfig = {
     apiKey: "AIzaSyBW_GYELchHB-VoIc7TR1XPK-tkE4bLutg",
     authDomain: "iniciopruebabeta.firebaseapp.com",
@@ -269,13 +261,196 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/fireba
     messagingSenderId: "17837784293",
     appId: "1:17837784293:web:94538fc553b24751b5680c"
   };
-  //acá termina el configuración de firebase
 
-  // Inicializar
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const provider = new GoogleAuthProvider();
 
+  // ===== Referencias DOM según TU HTML =====
+  const preloader      = document.getElementById("preloader");
+  const appContent     = document.getElementById("appContent");
+  const loginContainer = document.getElementById("loginContainer");
+  const emailText      = document.getElementById("emailText");
+  const logoutBtn      = document.getElementById("logoutBtn");
+
+  // Gate de contraseña
+  const passwordGate = document.getElementById("passwordGate");
+  const pwInput      = document.getElementById("pwInput");
+  const pwSubmitBtn  = document.getElementById("pwSubmitBtn");
+  const pwLogoutBtn  = document.getElementById("pwLogoutBtn");
+  const pwError      = document.getElementById("pwError");
+
+  // ===== Contraseña (cámbiala cuando quieras) =====
+  const ACCESS_PASSWORD = "TU-CLAVE-SECRETA-AQUI";
+
+  // Guarda el pase por usuario en la pestaña
+  const gateKeyFor = (uid) => `gate_ok:${uid}`;
+
+  // ===== Funciones de TU HTML =====
+  window.login = async () => {
+    try {
+      await signInWithPopup(auth, provider);
+    } catch (e) {
+      alert(e.message);
+    }
+  };
+
+  window.logout = async () => {
+    try {
+      await signOut(auth);
+    } catch (e) {
+      alert(e.message);
+    }
+  };
+
+  // Mostrar / ocultar gate
+  function showPasswordGate() {
+    pwInput.value = "";
+    pwError.textContent = "";
+    passwordGate.style.display = "flex";
+    pwInput.focus();
+  }
+  function hidePasswordGate() {
+    passwordGate.style.display = "none";
+  }
+
+  // Preloader -> App
+  function runPreloaderThenShowApp() {
+    if (!preloader) { if (appContent) appContent.style.display = "flex"; return; }
+    preloader.style.display = "flex";
+    const fill = document.getElementById("progressFill");
+    const pct  = document.getElementById("percentage");
+    let p = 0;
+    const t = setInterval(() => {
+      p = Math.min(100, p + 7);
+      if (fill) fill.style.width = p + "%";
+      if (pct)  pct.textContent = p + "%";
+      if (p >= 100) {
+        clearInterval(t);
+        preloader.style.display = "none";
+        if (appContent) appContent.style.display = "flex";
+      }
+    }, 50);
+  }
+
+  // Validar contraseña
+  function handlePasswordSubmit(user) {
+    const value = (pwInput.value || "").trim();
+    if (!value) { pwError.textContent = "Ingresá la contraseña."; return; }
+    if (value !== ACCESS_PASSWORD) { pwError.textContent = "Contraseña incorrecta."; return; }
+    sessionStorage.setItem(gateKeyFor(user.uid), "1");
+    hidePasswordGate();
+    runPreloaderThenShowApp();
+  }
+
+  // Eventos del gate
+  pwSubmitBtn?.addEventListener("click", () => {
+    const user = auth.currentUser;
+    if (user) handlePasswordSubmit(user);
+  });
+
+  pwInput?.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      const user = auth.currentUser;
+      if (user) handlePasswordSubmit(user);
+    }
+  });
+
+  pwLogoutBtn?.addEventListener("click", () => {
+    signOut(auth);
+  });
+
+  // Estado de sesión: AQUÍ se decide mostrar el gate ANTES del preloader
+  onAuthStateChanged(auth, (user) => {
+    if (!user) {
+      emailText && (emailText.textContent = "");
+      logoutBtn && (logoutBtn.style.display = "none");
+      loginContainer && (loginContainer.style.display = "flex");
+      preloader && (preloader.style.display = "none");
+      appContent && (appContent.style.display = "none");
+      hidePasswordGate();
+      return;
+    }
+
+    emailText && (emailText.textContent = user.email ?? "Usuario");
+    logoutBtn && (logoutBtn.style.display = "inline-block");
+    loginContainer && (loginContainer.style.display = "none");
+
+    // ¿Ya pasó el gate en esta sesión?
+    if (sessionStorage.getItem(gateKeyFor(user.uid)) === "1") {
+      hidePasswordGate();
+      runPreloaderThenShowApp();
+    } else {
+      // Mostrar el gate ANTES del preloader/app
+      preloader && (preloader.style.display = "none");
+      appContent && (appContent.style.display = "none");
+      showPasswordGate();
+    }
+  });  //acá termina el configuración de firebase
+
+
+
+  //Inicializar
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const provider = new GoogleAuthProvider();
+
+// ====== CONFIG DE ACCESO (puedes rotar la contraseña cuando quieras) ======
+// 1) Cambia SOLO esta contraseña de texto:
+const ACCESS_CODE_PLAIN = "TuClaveSecreta2025";
+
+// 2) Se calcula su SHA-256 en runtime (no queda en texto plano en memoria larga):
+let ACCESS_CODE_HASH = null;
+async function sha256(text) {
+  const enc = new TextEncoder().encode(text);
+  const buf = await crypto.subtle.digest('SHA-256', enc);
+  return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2,'0')).join('');
+}
+(async () => { ACCESS_CODE_HASH = await sha256(ACCESS_CODE_PLAIN); })();
+
+// Helpers del gate
+function showPasswordGate() {
+  // Oculta todo lo demás
+  document.getElementById("appContent").style.display = "none";
+  document.getElementById("passwordGate").style.display = "flex";
+  requestAnimationFrame(() => {
+    document.getElementById("pwInput").focus();
+  });
+}
+
+function hidePasswordGate() {
+  document.getElementById("passwordGate").style.display = "none";
+  document.getElementById("appContent").style.display = "flex";
+  document.getElementById("pwError").textContent = "";
+  document.getElementById("pwInput").value = "";
+}
+
+// Valida la contraseña y guarda bandera por sesión
+async function verifyAccessCode() {
+  const input = document.getElementById("pwInput").value.trim();
+  const err = document.getElementById("pwError");
+  if (!input) {
+    err.textContent = "Ingresá la contraseña.";
+    return;
+  }
+  const hash = await sha256(input);
+  if (hash === ACCESS_CODE_HASH) {
+    sessionStorage.setItem("pwOk", "1");
+    hidePasswordGate();
+  } else {
+    err.textContent = "Contraseña incorrecta.";
+  }
+}
+
+// Wire de botones del gate
+window.addEventListener("DOMContentLoaded", () => {
+  const enter = e => { if (e.key === "Enter") verifyAccessCode(); };
+  document.getElementById("pwSubmitBtn")?.addEventListener("click", verifyAccessCode);
+  document.getElementById("pwLogoutBtn")?.addEventListener("click", () => logout());
+  document.getElementById("pwInput")?.addEventListener("keydown", enter);
+});
+
+  
   // Botones y span (ajustá los IDs si usás otros)
   const loginBtn  = document.getElementById("loginBtn");
   const logoutBtn = document.getElementById("logoutBtn");
