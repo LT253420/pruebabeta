@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Herramientas Digitales</title>
+  <title>Prueba Inicio con contraseña</title>
   <link rel="stylesheet" href="style.css">
      <!-- Ícono claro para modo claro -->
   <link rel="icon" href="favicon-dark.ico" media="(prefers-color-scheme: light)">
@@ -22,7 +22,7 @@
 
   <!-- Login -->
   <div id="loginContainer">
-    <h1>Herramientas Digitales</h1>
+    <h1>Prueba inicio con contraseña</h1>
     <h6>Powered By Novacell Repairs - By Lucas M. Tullier</h6>
     <button id="loginBtn" onclick="login()">Acceder con Google</button>
   </div>
@@ -35,7 +35,7 @@
 
   <!-- Contenido principal -->
   <div id="appContent" style="display:none; flex-direction: column; align-items: center; width: 100%;">
-    <h1>Herramientas Digitales</h1>
+    <h1>Prueba inicio con contraseña</h1>
 
     <div class="button-container" id="mainMenu">
       <button onclick="mostrarComoUsar()">Cómo usar</button>
@@ -302,9 +302,9 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/fireba
       document.getElementById("loginContainer").style.display = "none";
       document.getElementById("appContent").style.display = "flex";
     }
-  });
+  });//acá termina la persistencia automatica del usuario autenticado
  </script>
-    //acá termina la persistencia automatica del usuario autenticado
+  
       
 <script>
 
