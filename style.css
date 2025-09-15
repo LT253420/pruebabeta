@@ -62,8 +62,10 @@ h1 {
 /* Subtítulo de fallas */
 h2 {
   text-align: center;
-  color: #ffffff;
-  margin-top: 20px;
+  font-size: 2rem;
+  margin-bottom: 30px;
+  text-shadow: 0 0 8px var(--color-principal);
+  color: var(--color-principal);
 }
 
 /* Contenedor de botones */
