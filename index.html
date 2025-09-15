@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Prueba Inicio con contraseña</title>
+  <title>Herramientas Digitales</title>
   <link rel="stylesheet" href="style.css">
      <!-- Ícono claro para modo claro -->
   <link rel="icon" href="favicon-dark.ico" media="(prefers-color-scheme: light)">
@@ -22,29 +22,10 @@
 
   <!-- Login -->
   <div id="loginContainer">
-    <h1>Prueba inicio con contraseña</h1>
+    <h1>Herramientas Digitales</h1>
     <h6>Powered By Novacell Repairs - By Lucas M. Tullier</h6>
     <button id="loginBtn" onclick="login()">Acceder con Google</button>
   </div>
-
-    <!-- Gate de contraseña (se muestra tras el login) -->
-<div id="passwordGate" style="display:none;">
-  <div class="pw-card">
-    <h2>🔒 Inserte contraseña</h2>
-    <input
-      id="pwInput"
-      type="password"
-      placeholder="Contraseña"
-      autocomplete="off"
-      inputmode="text"
-    />
-    <div class="pw-actions">
-      <button id="pwSubmitBtn">Ingresar</button>
-      <button id="pwLogoutBtn" class="ghost">Cambiar de cuenta</button>
-    </div>
-    <div id="pwError" class="pw-error" aria-live="polite"></div>
-
-</div>
 
   <!-- Top bar -->
   <div class="top-bar">
@@ -54,7 +35,7 @@
 
   <!-- Contenido principal -->
   <div id="appContent" style="display:none; flex-direction: column; align-items: center; width: 100%;">
-    <h1>Prueba inicio con contraseña</h1>
+    <h1>Herramientas Digitales</h1>
 
     <div class="button-container" id="mainMenu">
       <button onclick="mostrarComoUsar()">Cómo usar</button>
@@ -242,17 +223,12 @@
 
     <!-- Scripts de Firebase -->
   <!-- Firebase App (core SDK) -->
-<script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js"></script>
-<!-- Firebase Auth -->
-<script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js"></script>
+<!-- Firebase (CDN compat) + Auth -->
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
 
-
-  <!-- Tu configuración de Firebase -->
-<script type="module">
-  // ===== Firebase (CDN) =====
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-  import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signOut } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
-
+<script>
+  // --- Config de tu proyecto (tal cual me pasaste) ---
   const firebaseConfig = {
     apiKey: "AIzaSyBW_GYELchHB-VoIc7TR1XPK-tkE4bLutg",
     authDomain: "iniciopruebabeta.firebaseapp.com",
@@ -262,305 +238,136 @@
     appId: "1:17837784293:web:94538fc553b24751b5680c"
   };
 
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const provider = new GoogleAuthProvider();
+  // --- Inicializar Firebase (compat) ---
+  console.log("[auth] inicializando firebase…");
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const provider = new firebase.auth.GoogleAuthProvider();
+  provider.setCustomParameters({ prompt: 'select_account' });
+  auth.languageCode = 'es';
 
-  // Referencias
-  const preloader      = document.getElementById("preloader");
-  const appContent     = document.getElementById("appContent");
-  const loginContainer = document.getElementById("loginContainer");
-  const emailText      = document.getElementById("emailText");
-  const logoutBtn      = document.getElementById("logoutBtn");
+  // --- DOM (existentes en tu HTML) ---
+  const loginContainer = document.getElementById('loginContainer');
+  const appContent     = document.getElementById('appContent');
+  const loginBtn       = document.getElementById('loginBtn');
+  const logoutBtn      = document.getElementById('logoutBtn');
+  const emailText      = document.getElementById('emailText');
 
-  // Gate de contraseña
-  const passwordGate = document.getElementById("passwordGate");
-  const pwInput      = document.getElementById("pwInput");
-  const pwSubmitBtn  = document.getElementById("pwSubmitBtn");
-  const pwLogoutBtn  = document.getElementById("pwLogoutBtn");
-  const pwError      = document.getElementById("pwError");
-
-  // Cambia esta clave
-  const ACCESS_PASSWORD = "curso2025";
-  const gateKeyFor = (uid) => `gate_ok:${uid}`;
-
-  // ---- Login/Logout expuestos al botón ----
-  window.login = async () => {
-    try { await signInWithPopup(auth, provider); }
-    catch (e) { alert(e.message); }
-  };
-  window.logout = async () => {
-    try { await signOut(auth); }
-    catch (e) { alert(e.message); }
-  };
-  // Fallback por si el inline onclick falla por algo
-  document.getElementById('loginBtn')?.addEventListener('click', () => window.login && window.login());
-
-  // ---- Gate helpers ----
-  function showPasswordGate() {
-    pwInput.value = ""; pwError.textContent = "";
-    passwordGate.style.display = "flex";
-    pwInput.focus();
+  // --- Caja de error visible ---
+  let errorBox = document.getElementById('authErrorBox');
+  if (!errorBox) {
+    errorBox = document.createElement('div');
+    errorBox.id = 'authErrorBox';
+    errorBox.style.cssText = 'margin:10px auto;max-width:900px;color:#b00020;background:#ffe6e9;border:1px solid #b00020;padding:10px;display:none;border-radius:6px;';
+    loginContainer?.appendChild(errorBox);
   }
-  function hidePasswordGate() { passwordGate.style.display = "none"; }
-
-  function runPreloaderThenShowApp() {
-    if (!preloader) { appContent && (appContent.style.display = "flex"); return; }
-    preloader.style.display = "flex";
-    const fill = document.getElementById("progressFill");
-    const pct  = document.getElementById("percentage");
-    let p = 0;
-    const t = setInterval(() => {
-      p = Math.min(100, p + 7);
-      if (fill) fill.style.width = p + "%";
-      if (pct)  pct.textContent = p + "%";
-      if (p >= 100) {
-        clearInterval(t);
-        preloader.style.display = "none";
-        appContent && (appContent.style.display = "flex");
-      }
-    }, 50);
+  function showError(msg) {
+    console.error("[auth] ", msg);
+    errorBox.textContent = String(msg);
+    errorBox.style.display = 'block';
+  }
+  function hideError() {
+    errorBox.style.display = 'none';
   }
 
-  function handlePasswordSubmit(user) {
-    const value = (pwInput.value || "").trim();
-    if (!value) return pwError.textContent = "Ingresá la contraseña.";
-    if (value !== ACCESS_PASSWORD) return pwError.textContent = "Contraseña incorrecta.";
-    sessionStorage.setItem(gateKeyFor(user.uid), "1");
-    hidePasswordGate();
-    runPreloaderThenShowApp();
-  }
-
-  pwSubmitBtn?.addEventListener("click", () => auth.currentUser && handlePasswordSubmit(auth.currentUser));
-  pwInput?.addEventListener("keydown", (e) => { if (e.key === "Enter" && auth.currentUser) handlePasswordSubmit(auth.currentUser); });
-  pwLogoutBtn?.addEventListener("click", () => signOut(auth));
-
-  // ---- Estado de sesión ----
-  onAuthStateChanged(auth, (user) => {
-    if (!user) {
-      emailText && (emailText.textContent = "");
-      logoutBtn && (logoutBtn.style.display = "none");
-      loginContainer && (loginContainer.style.display = "flex");
-      preloader && (preloader.style.display = "none");
-      appContent && (appContent.style.display = "none");
-      hidePasswordGate();
-      return;
+  // --- Asegurar que el preloader NO bloquee nada ---
+  (function killPreloader(){
+    var pre = document.getElementById('preloader');
+    if (pre) {
+      pre.style.display = 'none';
+      pre.style.visibility = 'hidden';
+      pre.style.pointerEvents = 'none';
     }
-    emailText && (emailText.textContent = user.email ?? "Usuario");
-    logoutBtn && (logoutBtn.style.display = "inline-block");
-    loginContainer && (loginContainer.style.display = "none");
+  })();
 
-    if (sessionStorage.getItem(gateKeyFor(user.uid)) === "1") {
-      hidePasswordGate();
-      runPreloaderThenShowApp();
-    } else {
-      preloader && (preloader.style.display = "none");
-      appContent && (appContent.style.display = "none");
-      showPasswordGate();
-    }
-  });
+  // --- UI inicial ---
+  ocultarApp();
 
-  // ===== Funciones de TU HTML =====
-  window.login = async () => {
-    try {
-      await signInWithPopup(auth, provider);
-    } catch (e) {
-      alert(e.message);
-    }
-  };
-
-  window.logout = async () => {
-    try {
-      await signOut(auth);
-    } catch (e) {
-      alert(e.message);
-    }
-  };
-
-  // Mostrar / ocultar gate
-  function showPasswordGate() {
-    pwInput.value = "";
-    pwError.textContent = "";
-    passwordGate.style.display = "flex";
-    pwInput.focus();
-  }
-  function hidePasswordGate() {
-    passwordGate.style.display = "none";
-  }
-
-  // Preloader -> App
-  function runPreloaderThenShowApp() {
-    if (!preloader) { if (appContent) appContent.style.display = "flex"; return; }
-    preloader.style.display = "flex";
-    const fill = document.getElementById("progressFill");
-    const pct  = document.getElementById("percentage");
-    let p = 0;
-    const t = setInterval(() => {
-      p = Math.min(100, p + 7);
-      if (fill) fill.style.width = p + "%";
-      if (pct)  pct.textContent = p + "%";
-      if (p >= 100) {
-        clearInterval(t);
-        preloader.style.display = "none";
-        if (appContent) appContent.style.display = "flex";
-      }
-    }, 50);
-  }
-
-  // Validar contraseña
-  function handlePasswordSubmit(user) {
-    const value = (pwInput.value || "").trim();
-    if (!value) { pwError.textContent = "Ingresá la contraseña."; return; }
-    if (value !== ACCESS_PASSWORD) { pwError.textContent = "Contraseña incorrecta."; return; }
-    sessionStorage.setItem(gateKeyFor(user.uid), "1");
-    hidePasswordGate();
-    runPreloaderThenShowApp();
-  }
-
-  // Eventos del gate
-  pwSubmitBtn?.addEventListener("click", () => {
-    const user = auth.currentUser;
-    if (user) handlePasswordSubmit(user);
-  });
-
-  pwInput?.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") {
-      const user = auth.currentUser;
-      if (user) handlePasswordSubmit(user);
-    }
-  });
-
-  pwLogoutBtn?.addEventListener("click", () => {
-    signOut(auth);
-  });
-
-  // Estado de sesión: AQUÍ se decide mostrar el gate ANTES del preloader
-  onAuthStateChanged(auth, (user) => {
-    if (!user) {
-      emailText && (emailText.textContent = "");
-      logoutBtn && (logoutBtn.style.display = "none");
-      loginContainer && (loginContainer.style.display = "flex");
-      preloader && (preloader.style.display = "none");
-      appContent && (appContent.style.display = "none");
-      hidePasswordGate();
-      return;
-    }
-
-    emailText && (emailText.textContent = user.email ?? "Usuario");
-    logoutBtn && (logoutBtn.style.display = "inline-block");
-    loginContainer && (loginContainer.style.display = "none");
-
-    // ¿Ya pasó el gate en esta sesión?
-    if (sessionStorage.getItem(gateKeyFor(user.uid)) === "1") {
-      hidePasswordGate();
-      runPreloaderThenShowApp();
-    } else {
-      // Mostrar el gate ANTES del preloader/app
-      preloader && (preloader.style.display = "none");
-      appContent && (appContent.style.display = "none");
-      showPasswordGate();
-    }
-  });  //acá termina el configuración de firebase
-
-
-
-  //Inicializar
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const provider = new GoogleAuthProvider();
-
-// ====== CONFIG DE ACCESO (puedes rotar la contraseña cuando quieras) ======
-// 1) Cambia SOLO esta contraseña de texto:
-const ACCESS_CODE_PLAIN = "TuClaveSecreta2025";
-
-// 2) Se calcula su SHA-256 en runtime (no queda en texto plano en memoria larga):
-let ACCESS_CODE_HASH = null;
-async function sha256(text) {
-  const enc = new TextEncoder().encode(text);
-  const buf = await crypto.subtle.digest('SHA-256', enc);
-  return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2,'0')).join('');
-}
-(async () => { ACCESS_CODE_HASH = await sha256(ACCESS_CODE_PLAIN); })();
-
-// Helpers del gate
-function showPasswordGate() {
-  // Oculta todo lo demás
-  document.getElementById("appContent").style.display = "none";
-  document.getElementById("passwordGate").style.display = "flex";
-  requestAnimationFrame(() => {
-    document.getElementById("pwInput").focus();
-  });
-}
-
-function hidePasswordGate() {
-  document.getElementById("passwordGate").style.display = "none";
-  document.getElementById("appContent").style.display = "flex";
-  document.getElementById("pwError").textContent = "";
-  document.getElementById("pwInput").value = "";
-}
-
-// Valida la contraseña y guarda bandera por sesión
-async function verifyAccessCode() {
-  const input = document.getElementById("pwInput").value.trim();
-  const err = document.getElementById("pwError");
-  if (!input) {
-    err.textContent = "Ingresá la contraseña.";
-    return;
-  }
-  const hash = await sha256(input);
-  if (hash === ACCESS_CODE_HASH) {
-    sessionStorage.setItem("pwOk", "1");
-    hidePasswordGate();
-  } else {
-    err.textContent = "Contraseña incorrecta.";
-  }
-}
-
-// Wire de botones del gate
-window.addEventListener("DOMContentLoaded", () => {
-  const enter = e => { if (e.key === "Enter") verifyAccessCode(); };
-  document.getElementById("pwSubmitBtn")?.addEventListener("click", verifyAccessCode);
-  document.getElementById("pwLogoutBtn")?.addEventListener("click", () => logout());
-  document.getElementById("pwInput")?.addEventListener("keydown", enter);
-});
-
-  
-  // Botones y span (ajustá los IDs si usás otros)
-  const loginBtn  = document.getElementById("loginBtn");
-  const logoutBtn = document.getElementById("logoutBtn");
-  const emailText = document.getElementById("emailText");
-
-  // Login
-  if (loginBtn) {
-    loginBtn.addEventListener("click", () => {
-      signInWithPopup(auth, provider).catch(err => {
-        alert("Error al iniciar sesión: " + err.message);
-        console.error(err);
-      });
-    });
-  }
-
-  // Logout
-  if (logoutBtn) {
-    logoutBtn.addEventListener("click", () => signOut(auth));
-  }
-
-  // Escucha de sesión
-  onAuthStateChanged(auth, (user) => {
+  // --- Auth state ---
+  auth.onAuthStateChanged((user) => {
+    console.log("[auth] state changed:", user ? user.email : "sin usuario");
+    hideError();
     if (user) {
-      if (emailText) emailText.textContent = user.email ?? "Usuario";
-      if (logoutBtn) logoutBtn.style.display = "inline-block";
-      if (loginBtn)  loginBtn.style.display  = "none";
-      // acá podés mostrar tu appContent, etc.
-      // document.getElementById("appContent").style.display = "flex";
+      emailText.textContent = user.email || '';
+      mostrarApp();
     } else {
-      if (logoutBtn) logoutBtn.style.display = "none";
-      if (loginBtn)  loginBtn.style.display  = "inline-block";
-      if (emailText) emailText.textContent   = "";
-      // document.getElementById("appContent").style.display = "none";
+      emailText.textContent = '';
+      ocultarApp();
     }
   });
-  //acá termina el Config de firebase
+
+  // --- Acciones ---
+  async function login() {
+    hideError();
+    console.log("[auth] login() click");
+    try {
+      if (loginBtn) loginBtn.disabled = true;
+      await auth.signInWithPopup(provider);
+      // si el popup se bloquea, el catch lo maneja
+    } catch (err) {
+      console.warn("[auth] popup falló, probando redirect…", err?.code || err);
+      try {
+        await auth.signInWithRedirect(provider);
+      } catch (e2) {
+        showError('Error al iniciar sesión: ' + (e2?.message || e2));
+      }
+    } finally {
+      if (loginBtn) loginBtn.disabled = false;
+    }
+  }
+
+  async function logout() {
+    hideError();
+    try {
+      await auth.signOut();
+    } catch (err) {
+      showError('Error al cerrar sesión: ' + (err?.message || err));
+    }
+  }
+
+  // --- Helpers de UI ---
+  function mostrarApp() {
+    if (loginContainer) loginContainer.style.display = 'none';
+    if (appContent) {
+      appContent.style.display = 'flex';
+      appContent.style.width   = '100%';
+    }
+    if (logoutBtn) logoutBtn.style.display = 'inline-block';
+  }
+  function ocultarApp() {
+    if (loginContainer) loginContainer.style.display = 'block';
+    if (appContent) appContent.style.display = 'none';
+    if (logoutBtn) logoutBtn.style.display = 'none';
+  }
+
+  // Exponer al scope global (por tus onclick)
+  window.login = login;
+  window.logout = logout;
+
+
+  window.login = () => {
+    signInWithPopup(auth, provider)
+      .then((result) => {
+        const user = result.user;
+        document.getElementById("emailText").innerText = user.email;
+        document.getElementById("logoutBtn").style.display = "inline-block";
+        document.getElementById("loginContainer").style.display = "none";
+        document.getElementById("appContent").style.display = "flex";
+      })
+      .catch((error) => {
+        console.error("Error en login:", error);
+        alert("Error al iniciar sesión: " + error.message);
+      });
+  };
+
+  window.logout = () => {
+    signOut(auth).then(() => {
+      document.getElementById("loginContainer").style.display = "block";
+      document.getElementById("appContent").style.display = "none";
+      document.getElementById("logoutBtn").style.display = "none";
+      document.getElementById("emailText").innerText = "";
+    });
+  };
 
   // Persistencia automática del usuario autenticado
    onAuthStateChanged(auth, (user) => {
@@ -570,40 +377,10 @@ window.addEventListener("DOMContentLoaded", () => {
       document.getElementById("loginContainer").style.display = "none";
       document.getElementById("appContent").style.display = "flex";
     }
-  });//acá termina la persistencia automatica del usuario autenticado
+  });
  </script>
-  
       
 <script>
-
-    const respuestasPorFalla = {
-      "No enciende": [
-        ["Revisar batería", "Medir batería para saber si funciona."],
-        ["Botón de encendido", "Verificar si el botón funciona correctamente."],
-        ["Placa base", "Posible falla de alimentación o cortocircuito."]
-      ],
-      "No tiene sonido": [
-        ["Altavoz", "Probar el parlante con otro equipo."],
-        ["Conectores", "Verificar si están sulfatados o desconectados."],
-        ["Placa base", "Fallo en circuito de audio."]
-      ],
-      "No puedo hacer llamadas": [
-        ["Estado del IMEI", "Verificar si el equipo fue dado de baja."],
-        ["Chip", "Probar con otro chip o limpiar la bandeja."],
-        ["Señal", "Revisar si toma señal correctamente."]
-      ],
-      "El teléfono se calienta": [
-        ["Batería", "Puede estar defectuosa o vieja."],
-        ["Apps en segundo plano", "Cerrar procesos que usen muchos recursos."],
-        ["Mantenimiento", "Limpiar placa, cambiar pasta térmica."]
-      ],
-
-      "Mi celular se apaga solo": [
-        ["Boton de encendido", "Puede estar en corto o dañado"],
-        ["Batería", "Conector de batería dañado o batería en mal estado"],
-        ["Placa Madre", "Cortocircuito o placa dañada"]
-      ]
-    };
 
 function showResponse(falla) {
   ocultarTodo();
@@ -728,5 +505,145 @@ function ocultarTodo() {
       }
     }
   </script>
+<!-- Firebase (CDN compat) + Auth -->
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+
+<script>
+  // --- Config de tu proyecto ---
+  const firebaseConfig = {
+    apiKey: "AIzaSyBW_GYELchHB-VoIc7TR1XPK-tkE4bLutg",
+    authDomain: "iniciopruebabeta.firebaseapp.com",
+    projectId: "iniciopruebabeta",
+    storageBucket: "iniciopruebabeta.firebasestorage.app",
+    messagingSenderId: "17837784293",
+    appId: "1:17837784293:web:94538fc553b24751b5680c"
+  };
+
+  // --- Inicializar Firebase (compat) ---
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const provider = new firebase.auth.GoogleAuthProvider();
+  provider.setCustomParameters({ prompt: 'select_account' });
+  auth.languageCode = 'es';
+
+  // --- DOM que ya existe en tu HTML ---
+  const loginContainer = document.getElementById('loginContainer');
+  const appContent     = document.getElementById('appContent');
+  const loginBtn       = document.getElementById('loginBtn');
+  const logoutBtn      = document.getElementById('logoutBtn');
+  const emailText      = document.getElementById('emailText');
+
+  // --- Área de errores visible (la creo si no existe) ---
+  let errorBox = document.getElementById('authErrorBox');
+  if (!errorBox) {
+    errorBox = document.createElement('div');
+    errorBox.id = 'authErrorBox';
+    errorBox.style.cssText = 'margin:10px auto;max-width:900px;color:#b00020;background:#ffe6e9;border:1px solid #b00020;padding:10px;display:none;border-radius:6px;';
+    loginContainer?.appendChild(errorBox);
+  }
+  function showError(msg) {
+    if (!errorBox) return;
+    errorBox.textContent = msg;
+    errorBox.style.display = 'block';
+  }
+  function hideError() {
+    if (!errorBox) return;
+    errorBox.style.display = 'none';
+  }
+
+  // --- Ocultar app de entrada ---
+  ocultarApp();
+
+  // --- Detectar si se abrió como file:// (esto rompe Google Auth) ---
+  if (location.protocol === 'file:') {
+    showError('⚠️ Google Sign-In no funciona con file://. Abrí este archivo con un servidor (http://localhost). Por ejemplo: "npx serve", "Live Server" de VSCode o "python -m http.server". También asegurate de tener "localhost" en Authorized domains de Firebase.');
+  }
+
+  // --- Estado de sesión ---
+  auth.onAuthStateChanged((user) => {
+    hideError();
+    if (user) {
+      emailText.textContent = user.email || '';
+      mostrarApp();
+    } else {
+      emailText.textContent = '';
+      ocultarApp();
+    }
+  });
+
+  // --- Funciones que usás desde el HTML ---
+  async function login() {
+    hideError();
+    try {
+      if (location.protocol === 'file:') {
+        showError('⚠️ No se puede iniciar sesión desde file://. Usá http://localhost y agregá "localhost" en Authorized domains de Firebase.');
+        return;
+      }
+      loginBtn.disabled = true;
+      // Intento con popup
+      await auth.signInWithPopup(provider);
+    } catch (err) {
+      // Si el popup está bloqueado, probamos redirect
+      if (err && (err.code === 'auth/popup-blocked' || err.code === 'auth/popup-closed-by-user')) {
+        try {
+          await auth.signInWithRedirect(provider);
+          return;
+        } catch (e2) {
+          console.error('Redirect también falló:', e2);
+          showError('Error al iniciar sesión (redirect): ' + (e2?.message || e2));
+        }
+      } else {
+        console.error('Error al iniciar sesión:', err);
+        showError('Error al iniciar sesión: ' + (err?.message || err));
+      }
+    } finally {
+      loginBtn.disabled = false;
+    }
+  }
+
+  async function logout() {
+    hideError();
+    try {
+      await auth.signOut();
+    } catch (err) {
+      console.error('Error al cerrar sesión:', err);
+      showError('Error al cerrar sesión: ' + (err?.message || err));
+    }
+  }
+
+  // --- Helpers UI ---
+  function mostrarApp() {
+    if (loginContainer) loginContainer.style.display = 'none';
+    if (appContent) {
+      appContent.style.display = 'flex';   // tu contenedor usa flex
+      appContent.style.width   = '100%';
+    }
+    if (logoutBtn) logoutBtn.style.display = 'inline-block';
+  }
+
+  function ocultarApp() {
+    if (loginContainer) loginContainer.style.display = 'block';
+    if (appContent) appContent.style.display = 'none';
+    if (logoutBtn) logoutBtn.style.display = 'none';
+  }
+
+  // Exponer por los onclick del HTML
+  window.login = login;
+  window.logout = logout;
+</script>
+
+    <script>
+  // Mata el preloader por las dudas (si el CSS no llegó a aplicar a tiempo)
+  (function killPreloader(){
+    var pre = document.getElementById('preloader');
+    if (pre) {
+      pre.style.display = 'none';
+      pre.style.visibility = 'hidden';
+      pre.style.pointerEvents = 'none';
+    }
+  })();
+</script>
+
 </body>
 </html>
