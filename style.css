@@ -5,6 +5,7 @@
   --color-principal: #9900ff;
   --color-luz: #9900ffcc;
   --color-fondo-luz: #cc00ff0d;
+  --color-error: #ff0000;
 }
 
 
@@ -619,6 +620,26 @@ input.response-box:focus {
   border-color: var(--color-principal);
   box-shadow: 0 0 20px var(--color-principal); /* glow más fuerte al focus */
   background: var(--color-fondo-luz); /* podés cambiar este color a usar var(--color-luz) si querés */
+}
+
+/* ====== Estados de error para el input (holográfico rojo) ====== */
+input.response-box.error {
+  border: 2px solid var(--color-error);
+  color: var(--color-error);
+  box-shadow: 0 0 20px rgba(255, 68, 68, 0.8);
+  background: rgba(255, 68, 68, 0.05);
+}
+
+/* Efecto 'temblor' corto */
+.shake {
+  animation: shake 0.4s ease;
+}
+
+@keyframes shake {
+  10%, 90% { transform: translateX(-2px); }
+  20%, 80% { transform: translateX(4px); }
+  30%, 50%, 70% { transform: translateX(-8px); }
+  40%, 60% { transform: translateX(8px); }
 }
 
 
