@@ -231,24 +231,19 @@
   <!-- Tu configuración de Firebase -->
 <script type="module">
   // Import por CDN (no uses "firebase/app" a secas en el navegador)
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-  import { 
-    getAuth, 
-    onAuthStateChanged, 
-    signInWithPopup, 
-    GoogleAuthProvider, 
-    signOut 
-  } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+ import { initializeApp } from "firebase/app";
+ 
 
   // Tu configuración (la que mandaste)
   const firebaseConfig = {
-    apiKey: "AIzaSyBW_GYELchHB-VoIc7TR1XPK-tkE4bLutg",
-    authDomain: "iniciopruebabeta.firebaseapp.com",
-    projectId: "iniciopruebabeta",
-    storageBucket: "iniciopruebabeta.firebasestorage.app",
-    messagingSenderId: "17837784293",
-    appId: "1:17837784293:web:94538fc553b24751b5680c"
-  };
+  apiKey: "AIzaSyBW_GYELchHB-VoIc7TR1XPK-tkE4bLutg",
+  authDomain: "iniciopruebabeta.firebaseapp.com",
+  projectId: "iniciopruebabeta",
+  storageBucket: "iniciopruebabeta.firebasestorage.app",
+  messagingSenderId: "17837784293",
+  appId: "1:17837784293:web:94538fc553b24751b5680c"
+};
+  //acá termina el configuración de firebase
 
   // Inicializar
   const app = initializeApp(firebaseConfig);
