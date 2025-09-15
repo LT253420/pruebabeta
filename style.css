@@ -598,8 +598,8 @@ body.light-mode .footer {
 /* ================== INPUTS HOLOGRÁFICOS ================== */
 input.response-box {
   background: transparent;
-  border: 2px solid rgba(0, 255, 128, 0.7); /* verde neón */
-  color: #0f0; /* texto verde */
+  border: 2px solid color: var(--color-luz); /* verde neón */
+  color: var(--color-principal); /* texto verde */
   padding: 10px 12px;
   border-radius: 8px;
   outline: none;
