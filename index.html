@@ -27,6 +27,25 @@
     <button id="loginBtn" onclick="login()">Acceder con Google</button>
   </div>
 
+    <!-- Gate de contraseña (se muestra tras el login) -->
+<div id="passwordGate" style="display:none;">
+  <div class="pw-card">
+    <h2>🔒 Inserte contraseña</h2>
+    <input
+      id="pwInput"
+      type="password"
+      placeholder="Contraseña"
+      autocomplete="off"
+      inputmode="text"
+    />
+    <div class="pw-actions">
+      <button id="pwSubmitBtn">Ingresar</button>
+      <button id="pwLogoutBtn" class="ghost">Cambiar de cuenta</button>
+    </div>
+    <div id="pwError" class="pw-error" aria-live="polite"></div>
+  </div>
+</div>
+
   <!-- Top bar -->
   <div class="top-bar">
     <span id="emailText"></span>
